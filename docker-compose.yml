@@ -1,0 +1,18 @@
+services:
+  app:
+    image: rag-ui:0.0.1
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - ./src:/app/src
+    ports:
+      - "8888:8888"
+    depends_on:
+      - db
+    networks:
+      - rag
+networks:
+  rag:
+    name: dockernet
+    external: true

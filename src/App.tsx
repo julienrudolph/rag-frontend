@@ -2,7 +2,8 @@ import React, { useEffect, useState } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { Container, Row, Col, Form, Button, Spinner } from 'react-bootstrap';
 import axios from 'axios';
-import { loadEnv } from 'vite';
+
+
 
 interface AppState {
   gridData: string[];

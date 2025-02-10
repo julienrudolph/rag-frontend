@@ -1,57 +1,52 @@
-import { StrictMode, useContext } from 'react'
+import { StrictMode, useEffect, useState } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
 import App from './App.tsx'
-import { AuthContext, AuthProvider, type IAuthContext, type TAuthConfig } from 'react-oauth2-code-pkce'
+import { UserManager, WebStorageStateStore } from "oidc-client-ts";
 
-const authConfig:TAuthConfig = {
-  clientId: import.meta.env.VITE_CLIENTID,
-  authorizationEndpoint: import.meta.env.VITE_AUTHENDPOINT,
-  tokenEndpoint: import.meta.env.VITE_ADFS_TOKENENDPOINT,
-  redirectUri: import.meta.env.VITE_ADFS_REDIRECTURI,
-  scope: import.meta.env.VITE_ADFS_SCOPE,
-  autoLogin: true,
-  decodeToken: true,
-}
+const config = {
+  authority: "https://sts.cducsu.de/adfs", // Ersetze durch deine ADFS-URL
+  client_id: "", // Ersetze durch deine Client-ID
+  redirect_uri: "https://rag-ui.service.cducsu.local", // Muss mit der ADFS-Registrierung übereinstimmen
+  response_type: "code", // Code-Flow für sichere Authentifizierung
+  scope: "openid profile email", // Gewünschte Scopes
+  post_logout_redirect_uri: "http://localhost:3000/",
+  userStore: new WebStorageStateStore({ store: window.localStorage }),
+};
 
-function LoginInfo(): JSX.Element {
-  const {token, logOut, error, logIn }: IAuthContext = useContext(AuthContext)
+const userManager = new UserManager(config);
 
-  if (error) {
-    return (
-      <>
-        <div style={{ color: 'red' }}>An error occurred during authentication: {error}</div>
-        <button type='button' onClick={() => logOut()}>
-          Log out
-        </button>
-      </>
-    )
-  }
+function Login() {
+  const [user, setState] = useState(null);
+
+  useEffect(() => {
+    userManager.getUser().then((loadedUser) => {
+      if (loadedUser) {
+        setState(loadedUser as any);
+      }
+    });
+  }, []);
+
+  const login = () => {
+    userManager.signinRedirect();
+  };
+
   return (
-    <>
-      {token ? (
+    <div>
+      <h1>React ADFS OIDC Authentication</h1>
+      {user ? (
         <div>
-          <App />
-        </div>  
-      ):(
-        <div>
-          <p>Please login to continue</p>
-          <button type='button' style={{ width: '100px' }} onClick={() => logIn()}>
-            Log in
-          </button>
+          <p>Welcome, {user}</p>
+          <App/>
         </div>
+      ) : (
+        <button onClick={login}>Login</button>
       )}
-    </>
+    </div>
   );
 }
 
-
 createRoot(document.getElementById('root')!).render(
-  <div>
-    <AuthProvider authConfig={authConfig}>
-      <StrictMode>
-        <LoginInfo/>
-      </StrictMode>
-    </AuthProvider>
-  </div>
+  <StrictMode><Login/></StrictMode>
 )
+

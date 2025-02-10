@@ -90,7 +90,7 @@ const App: React.FC = () => {
       */
       let help: string = ''
       if(folder.length > 0){
-        let help:string  = folder[0]
+        help = folder[0]
       }
       const serverFiles = await axios.post(backend_base_uri + '/files',{
         tmp_folder: help
@@ -132,7 +132,7 @@ const App: React.FC = () => {
   }
 
   const handleInputChange = (field: keyof AppState, value: any) => {
-    setState((prevState) => ({ ...prevState, [field]: value }));
+    setState((prevState) => ({ ...prevState, [field[0]]: value }));
   };
 
   const handleSubmitFile = async () => {
@@ -196,7 +196,7 @@ const App: React.FC = () => {
       setState((prevState) =>({...prevState, index_request: true }))
       await axios.post(backend_base_uri + '/insert', {
         index: state.selectedIndex
-      }).then(response => {
+      }).then(() => {
         setState((prevState) =>({...prevState, index_request: false }))
       }).catch(error => {
         console.log(error);
@@ -228,7 +228,7 @@ const App: React.FC = () => {
     });
   }
 
-  async function handleDeleteFileFromServer(item: string, index: number) {
+  async function handleDeleteFileFromServer(item: string) {
     await axios.post(backend_base_uri + '/removeFile', {
       filename: item
     }).then(async response => {
@@ -325,7 +325,7 @@ const App: React.FC = () => {
           
           <Form.Control 
             type="file" 
-            onChange={(e) => handleInputChange('file', e.target.files ? e.target.files[0] : null)} 
+            onChange={(e) => handleInputChange('file', (e.target as HTMLInputElement).files ? (e.target as HTMLInputElement).files : null)} 
           />
           <Button style={{marginTop: '5px'}} onClick={() => handleSubmitFile()}>Datei hochladen</Button>
 
@@ -333,7 +333,7 @@ const App: React.FC = () => {
               {state.server_file_list.map((item, index) => (
                   <div key={index}>
                     {item} 
-                    <Button key={item + "_" + index} onClick={(e) => handleDeleteFileFromServer(item, index)}>Löschen</Button>
+                    <Button key={item + "_" + index} onClick={() => handleDeleteFileFromServer(item)}>Löschen</Button>
                   </div>
               ))}
         </Col>

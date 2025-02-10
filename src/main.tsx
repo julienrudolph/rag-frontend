@@ -4,7 +4,7 @@ import './index.css'
 import App from './App.tsx'
 import { AuthContext, AuthProvider, type IAuthContext, type TAuthConfig } from 'react-oauth2-code-pkce'
 
-const authConfig = {
+const authConfig:TAuthConfig = {
   clientId: import.meta.env.VITE_CLIENTID,
   authorizationEndpoint: import.meta.env.VITE_AUTHENDPOINT,
   tokenEndpoint: import.meta.env.VITE_ADFS_TOKENENDPOINT,
@@ -15,7 +15,7 @@ const authConfig = {
 }
 
 function LoginInfo(): JSX.Element {
-  const { tokenData, token, logOut, idToken, error, logIn }: IAuthContext = useContext(AuthContext)
+  const {token, logOut, error, logIn }: IAuthContext = useContext(AuthContext)
 
   if (error) {
     return (

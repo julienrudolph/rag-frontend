@@ -1,68 +1,49 @@
-import { StrictMode } from 'react'
-// import { createRoot } from 'react-dom/client'
-import './index.css'
-import App from './App.tsx'
-import { useEffect, useState } from "react";
-import { User, UserManager, WebStorageStateStore } from "oidc-client-ts";
+import React, { StrictMode, useEffect, useState } from "react";
+import { signIn, signOut, getUser, handleCallback } from "./oidc/OidcClient";
+import App from "./App";
 
-const config = {
-  authority: "https://sts.cducsu.de/adfs", // ADFS Server URL
-  client_id: "your-client-id", // Client-ID aus ADFS
-  redirect_uri: "https://rag-ui.service.cducsu.local", // Callback-URL
-  response_type: "code", // Authorization Code Flow
-  scope: "openid profile email", // Angeforderte Scopes
-  post_logout_redirect_uri: "https://rag-ui.service.cducsu.local", // Logout-Redirect
-  userStore: new WebStorageStateStore({ store: window.localStorage }),
+const Main: React.FC = () => {
+  const [user, setUser] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const processAuth = async () => {
+      if (window.location.search.includes("code=")) {
+        // Falls ein Code in der URL ist, führe das Callback-Handling aus
+        await handleCallback();
+        window.history.replaceState({}, document.title, window.location.pathname); // Entfernt den Code aus der URL
+      }
+
+      const currentUser = await getUser();
+      setUser(currentUser);
+      setLoading(false);
+    };
+
+    processAuth();
+  }, []);
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+
+  return (
+    <div>
+      {user ? (
+        <div>
+          <h1>Welcome, {user.profile.name}</h1>
+          <button onClick={signOut}>Logout</button>
+          <StrictMode>
+            <App />
+          </StrictMode>
+        </div>
+      ) : (
+        <div>
+          <h1>Please log in</h1>
+          <button onClick={signIn}>Login with ADFS</button>
+        </div>
+      )}
+    </div>
+  );
 };
 
-const userManager = new UserManager(config);
-
-export default function Login() {
-  const [user, setUser] = useState<User | null>(null);
-  
-    useEffect(() => {
-      userManager.getUser().then((loadedUser) => {
-        if (loadedUser) {
-          setUser(loadedUser);
-        }
-      });
-    }, []);
-  
-    const login = () => {
-      userManager.signinRedirect();
-    };
-  
-    const logout = () => {
-      userManager.signoutRedirect();
-    };
-  
-    return (
-      <div className="p-4 text-center">
-        {user ? (
-          <div>
-            <h2>Willkommen, {user.profile.name}</h2>
-            <p>Email: {user.profile.email}</p>
-            <button onClick={logout} className="bg-red-500 text-white p-2 rounded">
-              Logout
-            </button>
-            <StrictMode>
-              <App />
-            </StrictMode>
-          </div>
-        ) : (
-          <button onClick={login} className="bg-blue-500 text-white p-2 rounded">
-            Login mit ADFS
-          </button>
-        )}
-      </div>
-    );
-
-
-}
-
-/*
-createRoot(document.getElementById('root')!).render(
-  <StrictMode><Login/></StrictMode>
-)
-*/
-
+export default Main;

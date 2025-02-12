@@ -8,4 +8,10 @@ export const oidcConfig = {
     scope: "openid profile email", // Angeforderte Scopes
     post_logout_redirect_uri: "https://rag-ui.service.cducsu.local", // Logout-Redirect
     userStore: new WebStorageStateStore({ store: window.localStorage }),
+    metadata: {
+        authorization_endpoint: "https://sts.cducsu.de/adfs/oauth2/authorize",
+        token_endpoint: "https://sts.cducsu.de/adfs/oauth2/token",
+        userinfo_endpoint: "https://sts.cducsu.de/adfs/oauserinfo",
+
+    }
 };
